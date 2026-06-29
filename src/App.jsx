@@ -582,163 +582,170 @@ export default function App() {
           {/* Main Dashboard Grid */}
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
             
-            {/* ── Left Control Sidebar (Contains both DB and Manual Criteria Sliders!) ── */}
-            <aside className="md:col-span-4 space-y-6 sticky top-24">
-              <div className="glass-panel p-6 rounded-2xl space-y-6 border border-white/10 shadow-2xl">
-                
+            {/* ── Left Navigation Sidebar (Mode Buttons Only!) ── */}
+            <aside className="md:col-span-3 space-y-6 sticky top-24">
+              <div className="glass-panel p-5 rounded-2xl space-y-4 border border-white/10 shadow-2xl">
                 <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs tracking-wider uppercase">
                   <Layers className="w-4 h-4" /> {L.mode}
                 </div>
 
-                {/* Input Mode Selector */}
-                <div className="grid grid-cols-1 gap-2.5">
+                <div className="grid grid-cols-1 gap-3">
                   <button
                     onClick={() => { setMode('db'); triggerCalculation('db', selectedMaterial, {}); }}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-sm font-medium transition-all text-left ${mode === 'db' ? 'bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-indigo-500 text-indigo-200 font-semibold shadow-md shadow-indigo-500/10' : 'bg-white/3 border-white/10 text-slate-400 hover:bg-white/5'}`}
+                    className={`flex items-center gap-3 p-4 rounded-xl border text-xs sm:text-sm font-semibold transition-all text-left ${mode === 'db' ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/30 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/3 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'}`}
                   >
-                    <Database className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <Database className="w-5 h-5 text-indigo-400 flex-shrink-0" />
                     <span>{L.mode_db}</span>
                   </button>
                   <button
                     onClick={() => setMode('manual')}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-sm font-medium transition-all text-left ${mode === 'manual' ? 'bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-indigo-500 text-indigo-200 font-semibold shadow-md shadow-indigo-500/10' : 'bg-white/3 border-white/10 text-slate-400 hover:bg-white/5'}`}
+                    className={`flex items-center gap-3 p-4 rounded-xl border text-xs sm:text-sm font-semibold transition-all text-left ${mode === 'manual' ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/30 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/3 border-white/10 text-slate-400 hover:bg-white/5 hover:text-white'}`}
                   >
-                    <Edit3 className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <Edit3 className="w-5 h-5 text-indigo-400 flex-shrink-0" />
                     <span>{L.mode_manual}</span>
                   </button>
                 </div>
+              </div>
+            </aside>
 
-                <hr className="border-white/10" />
-
-                {/* Mode Content strictly inside Left Sidebar! */}
-                {mode === 'db' ? (
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.select_mat}</label>
-                    <select
-                      value={selectedMaterial}
-                      onChange={(e) => {
-                        setSelectedMaterial(e.target.value);
-                        triggerCalculation('db', e.target.value, {});
-                      }}
-                      className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3.5 text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
-                    >
-                      {materials.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                      <span>{selectedMaterial} {L.mat_loaded}</span>
+            {/* ── Right Main Content Panel (Displays Content for Selected Mode) ── */}
+            <section className="md:col-span-9 space-y-8">
+              
+              {/* Top Control Panel according to active Mode */}
+              {mode === 'db' ? (
+                <div className="glass-panel p-6 rounded-2xl border border-white/10 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-black text-white">{L.mode_db}</h3>
+                      <p className="text-xs text-slate-400">Veri tabanından malzeme seçerek anında MCDM uygunluk analizini görüntüleyin.</p>
+                    </div>
+                    <div className="w-full sm:w-72">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{L.select_mat}</label>
+                      <select
+                        value={selectedMaterial}
+                        onChange={(e) => {
+                          setSelectedMaterial(e.target.value);
+                          triggerCalculation('db', e.target.value, {});
+                        }}
+                        className="w-full bg-slate-900/90 border border-white/20 rounded-xl p-3 text-sm font-bold text-white focus:outline-none focus:border-indigo-500 shadow-inner"
+                      >
+                        {materials.map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                ) : (
-                  /* Manual Input Form strictly inside Left Sidebar! */
-                  <div className="space-y-4">
+                </div>
+              ) : (
+                <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/15 shadow-2xl space-y-6">
+                  <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                    <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <Edit3 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-white">{L.mode_manual}</h3>
+                      <p className="text-xs text-slate-400">{L.criteria_tip}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.mat_name}</label>
                       <input
                         type="text"
                         value={customMaterialName}
                         onChange={(e) => setCustomMaterialName(e.target.value)}
-                        className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
+                        className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3.5 text-sm font-semibold text-white focus:outline-none focus:border-indigo-500"
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.criteria_scores}</div>
-                      <p className="text-[11px] text-slate-400">{L.criteria_tip}</p>
+                  <div className="space-y-4">
+                    <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.criteria_scores}</div>
+                    
+                    {/* Application Tabs */}
+                    <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none border-b border-white/10">
+                      {applications.map(app => (
+                        <button
+                          key={app}
+                          onClick={() => setActiveTab(app)}
+                          className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${activeTab === app ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                        >
+                          {L.app_names[app] || app}
+                        </button>
+                      ))}
                     </div>
 
-                    {/* Tabs for Applications inside Left Sidebar */}
-                    <div className="space-y-3 pt-1">
-                      <div className="flex overflow-x-auto gap-1 pb-2 scrollbar-none">
-                        {applications.map(app => (
-                          <button
-                            key={app}
-                            onClick={() => setActiveTab(app)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${activeTab === app ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
-                          >
-                            {L.app_names[app] || app}
-                          </button>
-                        ))}
-                      </div>
+                    {/* Criteria Sliders Grid in spacious 2 columns */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      {(criteriaByApp[activeTab] || []).map(criterion => {
+                        const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
+                        const val = manualProfile[criterion] ?? 0.70;
 
-                      {/* Criteria Sliders list inside Left Sidebar */}
-                      <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                        {(criteriaByApp[activeTab] || []).map(criterion => {
-                          const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
-                          const val = manualProfile[criterion] ?? 0.70;
-
-                          return (
-                            <div key={criterion} className="p-3 rounded-xl bg-white/3 border border-white/5 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <label className="text-xs font-semibold text-slate-300">{criterion}</label>
-                                <input
-                                  type="checkbox"
-                                  checked={hasData}
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
-                                    setManualProfile(prev => {
-                                      const copy = { ...prev };
-                                      if (checked) copy[criterion] = val;
-                                      else delete copy[criterion];
-                                      return copy;
-                                    });
-                                  }}
-                                  className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
-                                />
-                              </div>
-
-                              {hasData && (
-                                <div className="space-y-1 pt-1">
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={val}
-                                    onChange={(e) => {
-                                      const v = parseFloat(e.target.value);
-                                      setManualProfile(prev => ({ ...prev, [criterion]: v }));
-                                    }}
-                                    className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                                  />
-                                  <div className="text-right font-mono text-xs text-indigo-400 font-bold">{val.toFixed(2)}</div>
-                                </div>
-                              )}
+                        return (
+                          <div key={criterion} className="p-4 rounded-xl bg-white/3 border border-white/10 space-y-3 hover:border-white/20 transition-all">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-slate-200">{criterion}</label>
+                              <input
+                                type="checkbox"
+                                checked={hasData}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
+                                  setManualProfile(prev => {
+                                    const copy = { ...prev };
+                                    if (checked) copy[criterion] = val;
+                                    else delete copy[criterion];
+                                    return copy;
+                                  });
+                                }}
+                                className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
+                              />
                             </div>
-                          );
-                        })}
-                      </div>
+
+                            {hasData && (
+                              <div className="space-y-1.5 pt-1">
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="1"
+                                  step="0.01"
+                                  value={val}
+                                  onChange={(e) => {
+                                    const v = parseFloat(e.target.value);
+                                    setManualProfile(prev => ({ ...prev, [criterion]: v }));
+                                  }}
+                                  className="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <div className="text-right font-mono text-xs text-indigo-400 font-bold">{val.toFixed(2)}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
 
-                {/* Calculate Button */}
-                <button
-                  onClick={handleCalculate}
-                  disabled={loading}
-                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-sm tracking-wide shadow-xl shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>{L.btn_calc}</span>
-                    </>
-                  )}
-                </button>
+                  <button
+                    onClick={handleCalculate}
+                    disabled={loading}
+                    className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-sm tracking-wide shadow-xl shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>{L.btn_calc}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
 
-              </div>
-            </aside>
-
-            {/* ── Right Results Dashboard ── */}
-            <section className="md:col-span-8 space-y-8">
-              
+              {/* ── Results Dashboard Section ── */}
               {loading ? (
-                <div className="glass-panel p-12 rounded-2xl flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <div className="glass-panel p-12 rounded-2xl flex flex-col items-center justify-center min-h-[300px] space-y-4">
                   <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                   <p className="text-sm font-semibold text-slate-400 animate-pulse">{L.loading}</p>
                 </div>
