@@ -205,7 +205,20 @@ function CircularGauge({ value, label, color }) {
 }
 
 export default function App() {
-  const [lang, setLang] = useState('tr');
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('biomat_lang') || 'tr';
+    } catch (e) {
+      return 'tr';
+    }
+  });
+
+  const changeLanguage = (newLang) => {
+    setLang(newLang);
+    try {
+      localStorage.setItem('biomat_lang', newLang);
+    } catch (e) {}
+  };
   
   // Auth state with session persistence
   const [user, setUser] = useState(() => {
@@ -466,13 +479,13 @@ export default function App() {
           {/* Language switcher */}
           <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
             <button
-              onClick={() => setLang('tr')}
+              onClick={() => changeLanguage('tr')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'tr' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
             >
               🇹🇷 TR
             </button>
             <button
-              onClick={() => setLang('en')}
+              onClick={() => changeLanguage('en')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'en' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
             >
               🇬🇧 EN
