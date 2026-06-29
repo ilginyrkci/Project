@@ -194,7 +194,7 @@ function CircularGauge({ value, label, color }) {
 
 export default function App() {
   const [lang, setLang] = useState('tr');
-  const [activePage, setActivePage] = useState('dss'); // 'dss' or 'auth'
+  const [activePage, setActivePage] = useState('auth'); // 'dss' or 'auth' - defaults to compulsory auth on load!
   
   const [materials, setMaterials] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -287,7 +287,6 @@ export default function App() {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     if (authTab === 'register') {
-      // Switch to login tab and show success message
       setAuthTab('login');
       setAuthSuccessMsg(lang === 'tr' ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' : '✅ Registration successful! Please sign in with your account.');
       setAuthForm(prev => ({ ...prev, password: '' }));
@@ -324,24 +323,23 @@ export default function App() {
           </div>
         </div>
 
-        {/* Navigation Page Tabs & Auth & Lang */}
+        {/* Auth User Profile & Lang Switcher */}
         <div className="flex items-center gap-3">
-          <nav className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10">
-            <button
-              onClick={() => setActivePage('dss')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'dss' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>{L.nav_dss}</span>
-            </button>
-            <button
-              onClick={() => setActivePage('auth')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'auth' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>{user ? user.name : L.nav_auth}</span>
-            </button>
-          </nav>
+          {user && (
+            <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-md">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
+              <button 
+                onClick={() => { setUser(null); setActivePage('auth'); }}
+                title={L.logout}
+                className="text-slate-400 hover:text-rose-400 transition-all p-1"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Language switcher */}
           <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
@@ -362,7 +360,7 @@ export default function App() {
       </header>
 
       {/* ── PAGE 2: Dedicated Auth Page ── */}
-      {activePage === 'auth' ? (
+      {!user || activePage === 'auth' ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 my-8 animate-fadeIn">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center space-y-2">
