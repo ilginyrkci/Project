@@ -211,11 +211,19 @@ export default function App() {
   const [evalResult, setEvalResult] = useState(null);
   const [expandedApp, setExpandedApp] = useState(null);
 
-  // Auth state
+  // Auth state with persistent registered users store
   const [user, setUser] = useState(null);
   const [authTab, setAuthTab] = useState('login'); // 'login' or 'register'
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
-  const [authSuccessMsg, setAuthSuccessMsg] = useState('');
+  const [authMsg, setAuthMsg] = useState({ type: '', text: '' });
+  const [registeredUsers, setRegisteredUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('biomat_registered_users');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   const L = LANG[lang];
 
@@ -286,16 +294,59 @@ export default function App() {
 
   const handleAuthSubmit = (e) => {
     e.preventDefault();
+    setAuthMsg({ type: '', text: '' });
+
+    const emailClean = authForm.email.trim().toLowerCase();
+    const existingUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
+
     if (authTab === 'register') {
+      if (existingUser) {
+        setAuthMsg({
+          type: 'error',
+          text: lang === 'tr' 
+            ? '⚠️ Bu e-posta adresi zaten kayıtlı! Lütfen bu hesapla giriş yapın.' 
+            : '⚠️ This email address is already registered! Please sign in.'
+        });
+        return;
+      }
+
+      const newUser = {
+        name: authForm.name.trim() || 'Researcher',
+        email: emailClean,
+        password: authForm.password
+      };
+
+      const updated = [...registeredUsers, newUser];
+      setRegisteredUsers(updated);
+      try {
+        localStorage.setItem('biomat_registered_users', JSON.stringify(updated));
+      } catch (err) {}
+
       setAuthTab('login');
-      setAuthSuccessMsg(lang === 'tr' ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' : '✅ Registration successful! Please sign in with your account.');
+      setAuthMsg({
+        type: 'success',
+        text: lang === 'tr' 
+          ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' 
+          : '✅ Registration successful! Please sign in with your account.'
+      });
       setAuthForm(prev => ({ ...prev, password: '' }));
     } else {
+      // Login flow validation
+      if (existingUser && existingUser.password !== authForm.password) {
+        setAuthMsg({
+          type: 'error',
+          text: lang === 'tr' 
+            ? '❌ Hatalı şifre! Lütfen şifrenizi kontrol edip tekrar deneyin.' 
+            : '❌ Incorrect password! Please check your password and try again.'
+        });
+        return;
+      }
+
       setUser({
-        name: authForm.name || (authForm.email.split('@')[0] || 'Researcher'),
-        email: authForm.email
+        name: existingUser ? existingUser.name : (authForm.email.split('@')[0] || 'Researcher'),
+        email: emailClean
       });
-      setAuthSuccessMsg('');
+      setAuthMsg({ type: '', text: '' });
       setActivePage('dss');
     }
   };
@@ -400,9 +451,9 @@ export default function App() {
                   </button>
                 </div>
 
-                {authSuccessMsg && (
-                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center animate-fadeIn">
-                    {authSuccessMsg}
+                {authMsg.text && (
+                  <div className={`p-3.5 rounded-xl text-xs font-bold text-center animate-fadeIn border ${authMsg.type === 'error' ? 'bg-rose-500/10 border-rose-500/30 text-rose-300' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                    {authMsg.text}
                   </div>
                 )}
 
