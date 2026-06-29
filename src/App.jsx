@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Dna, Globe, Database, Edit3, Award, CheckCircle2, AlertTriangle, 
   HelpCircle, ChevronDown, ChevronUp, BarChart3, Radar as RadarIcon, 
-  Sparkles, ShieldCheck, FileText, Activity, Layers, Zap, ArrowRight, Table
+  Sparkles, ShieldCheck, FileText, Activity, Layers, Zap, ArrowRight, Table,
+  User, Lock, Mail, UserPlus, LogOut, X, Sliders
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
@@ -45,6 +46,14 @@ const LANG = {
     missing: "Eksik Veriler",
     no_missing: "Eksik veri bulunmadı.",
     all_detail: "Tüm Kriter Ayrıntısı",
+    login: "Giriş Yap",
+    register: "Kayıt Ol",
+    logout: "Çıkış Yap",
+    email: "E-Posta Adresi",
+    password: "Şifre",
+    fullname: "Ad Soyad",
+    welcome: "Hoş geldiniz",
+    auth_title: "Hesabınıza Giriş Yapın veya Kaydolun",
     app_names: {
       "Wound Dressing": "Yara Örtüsü",
       "Drug Delivery System": "İlaç Taşıma Sistemi",
@@ -96,6 +105,14 @@ const LANG = {
     missing: "Missing Data",
     no_missing: "No missing data found.",
     all_detail: "Full Criterion Details",
+    login: "Sign In",
+    register: "Sign Up",
+    logout: "Sign Out",
+    email: "Email Address",
+    password: "Password",
+    fullname: "Full Name",
+    welcome: "Welcome",
+    auth_title: "Sign In or Create an Account",
     app_names: {
       "Wound Dressing": "Wound Dressing",
       "Drug Delivery System": "Drug Delivery System",
@@ -186,6 +203,12 @@ export default function App() {
   const [evalResult, setEvalResult] = useState(null);
   const [expandedApp, setExpandedApp] = useState(null);
 
+  // Auth States
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authTab, setAuthTab] = useState('login'); // 'login' or 'register'
+  const [user, setUser] = useState(null);
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+
   const L = LANG[lang];
 
   // Fetch initial metadata and auto-calculate default
@@ -198,7 +221,6 @@ export default function App() {
           if (data.materials.length > 0) {
             const firstMat = data.materials[0];
             setSelectedMaterial(firstMat);
-            // Auto calculate initial
             triggerCalculation('db', firstMat, {});
           }
         }
@@ -254,6 +276,16 @@ export default function App() {
     triggerCalculation(mode, mode === 'db' ? selectedMaterial : customMaterialName, manualProfile);
   };
 
+  const handleAuthSubmit = (e) => {
+    e.preventDefault();
+    setUser({
+      name: authTab === 'register' ? authForm.name : (authForm.email.split('@')[0] || 'User'),
+      email: authForm.email
+    });
+    setShowAuthModal(false);
+    setAuthForm({ name: '', email: '', password: '' });
+  };
+
   const bestResult = evalResult?.results?.[0];
 
   return (
@@ -264,7 +296,7 @@ export default function App() {
       <div className="fixed bottom-1/3 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
       {/* ── Top Navigation Header ── */}
-      <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-6 py-4 flex items-center justify-between backdrop-blur-xl">
+      <header className="sticky top-0 z-40 glass-panel border-b border-white/10 px-6 py-4 flex items-center justify-between backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
             <Dna className="w-6 h-6 animate-pulse" />
@@ -277,20 +309,54 @@ export default function App() {
           </div>
         </div>
 
-        {/* Language switcher */}
-        <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
-          <button
-            onClick={() => setLang('tr')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'tr' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-          >
-            🇹🇷 Türkçe
-          </button>
-          <button
-            onClick={() => setLang('en')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'en' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-          >
-            🇬🇧 English
-          </button>
+        <div className="flex items-center gap-3">
+          {/* User Auth Info / Button */}
+          {user ? (
+            <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
+              <button 
+                onClick={() => setUser(null)}
+                title={L.logout}
+                className="text-slate-400 hover:text-rose-400 transition-all p-1"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
+                className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 transition-all border border-white/10"
+              >
+                {L.login}
+              </button>
+              <button
+                onClick={() => { setAuthTab('register'); setShowAuthModal(true); }}
+                className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md shadow-indigo-500/20 transition-all"
+              >
+                {L.register}
+              </button>
+            </div>
+          )}
+
+          {/* Language switcher */}
+          <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
+            <button
+              onClick={() => setLang('tr')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'tr' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+            >
+              🇹🇷 TR
+            </button>
+            <button
+              onClick={() => setLang('en')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'en' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+            >
+              🇬🇧 EN
+            </button>
+          </div>
         </div>
       </header>
 
@@ -354,7 +420,7 @@ export default function App() {
 
             <hr className="border-white/10" />
 
-            {/* Mode Content */}
+            {/* Mode Content in Sidebar */}
             {mode === 'db' ? (
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.select_mat}</label>
@@ -376,7 +442,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              /* Manual Input Form */
+              /* Manual Input Sidebar Info */
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.mat_name}</label>
@@ -387,74 +453,9 @@ export default function App() {
                     className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.criteria_scores}</div>
-                  <p className="text-[11px] text-slate-400">{L.criteria_tip}</p>
-                </div>
-
-                {/* Tabs for Applications */}
-                <div className="space-y-3 pt-1">
-                  <div className="flex overflow-x-auto gap-1 pb-2 scrollbar-none">
-                    {applications.map(app => (
-                      <button
-                        key={app}
-                        onClick={() => setActiveTab(app)}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${activeTab === app ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
-                      >
-                        {L.app_names[app] || app}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Criteria Sliders list */}
-                  <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                    {(criteriaByApp[activeTab] || []).map(criterion => {
-                      const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
-                      const val = manualProfile[criterion] ?? 0.70;
-
-                      return (
-                        <div key={criterion} className="p-3 rounded-xl bg-white/3 border border-white/5 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-semibold text-slate-300">{criterion}</label>
-                            <input
-                              type="checkbox"
-                              checked={hasData}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
-                                setManualProfile(prev => {
-                                  const copy = { ...prev };
-                                  if (checked) copy[criterion] = val;
-                                  else delete copy[criterion];
-                                  return copy;
-                                });
-                              }}
-                              className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
-                            />
-                          </div>
-
-                          {hasData && (
-                            <div className="space-y-1 pt-1">
-                              <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.01"
-                                value={val}
-                                onChange={(e) => {
-                                  const v = parseFloat(e.target.value);
-                                  setManualProfile(prev => ({ ...prev, [criterion]: v }));
-                                }}
-                                className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                              />
-                              <div className="text-right font-mono text-xs text-indigo-400 font-bold">{val.toFixed(2)}</div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-indigo-400"><Sliders className="w-3.5 h-3.5" /> Kriter Ayarları Yanda</div>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">Uygulama kriterlerini ve skor kaydırıcılarını sağ taraftaki geniş alandan rahatça düzenleyebilirsiniz.</p>
                 </div>
               </div>
             )}
@@ -478,9 +479,98 @@ export default function App() {
           </div>
         </aside>
 
-        {/* ── Right Results Dashboard ── */}
+        {/* ── Right Content Area (Manual Criteria Editor OR Results Dashboard) ── */}
         <section className="lg:col-span-8 space-y-8">
           
+          {/* If Mode is Manual and user hasn't clicked calculate yet or wants to configure criteria in the spacious right panel */}
+          {mode === 'manual' && (
+            <div className="glass-panel p-6 sm:p-8 rounded-2xl space-y-6 border border-white/10 shadow-2xl animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <h3 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                    <Sliders className="w-6 h-6 text-indigo-400" /> {L.criteria_scores}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">{L.criteria_tip}</p>
+                </div>
+                <button
+                  onClick={handleCalculate}
+                  disabled={loading}
+                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 self-start sm:self-auto"
+                >
+                  <Sparkles className="w-4 h-4" /> {L.btn_calc}
+                </button>
+              </div>
+
+              {/* Application Tabs */}
+              <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none border-b border-white/5">
+                {applications.map(app => (
+                  <button
+                    key={app}
+                    onClick={() => setActiveTab(app)}
+                    className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${activeTab === app ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+                  >
+                    {L.app_names[app] || app}
+                  </button>
+                ))}
+              </div>
+
+              {/* Criteria Sliders Grid in 2 Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(criteriaByApp[activeTab] || []).map(criterion => {
+                  const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
+                  const val = manualProfile[criterion] ?? 0.70;
+
+                  return (
+                    <div key={criterion} className={`p-4 rounded-2xl border transition-all ${hasData ? 'bg-indigo-950/20 border-indigo-500/40 shadow-md' : 'bg-white/2 border-white/5 opacity-80'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={hasData}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
+                              setManualProfile(prev => {
+                                const copy = { ...prev };
+                                if (checked) copy[criterion] = val;
+                                else delete copy[criterion];
+                                return copy;
+                              });
+                            }}
+                            className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
+                          />
+                          <span>{criterion} verisi var</span>
+                        </label>
+                      </div>
+
+                      {hasData && (
+                        <div className="space-y-1.5 pt-2">
+                          <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
+                            <span>{criterion}</span>
+                            <span className="font-mono text-indigo-400 font-bold">{val.toFixed(2)}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={val}
+                            onChange={(e) => {
+                              const v = parseFloat(e.target.value);
+                              setManualProfile(prev => ({ ...prev, [criterion]: v }));
+                            }}
+                            className="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Results Dashboard */}
           {loading ? (
             <div className="glass-panel p-12 rounded-2xl flex flex-col items-center justify-center min-h-[400px] space-y-4">
               <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -730,6 +820,102 @@ export default function App() {
         </section>
 
       </main>
+
+      {/* ── Auth Modal (Sign In / Sign Up) ── */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-2xl glass-panel border border-white/15 shadow-2xl space-y-6">
+            
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-all p-1.5 rounded-lg hover:bg-white/10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="inline-flex p-3 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 mb-1">
+                <User className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-white">{L.auth_title}</h3>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-white/10">
+              <button
+                onClick={() => setAuthTab('login')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authTab === 'login' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                {L.login}
+              </button>
+              <button
+                onClick={() => setAuthTab('register')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authTab === 'register' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+              >
+                {L.register}
+              </button>
+            </div>
+
+            {/* Auth Form */}
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              {authTab === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300">{L.fullname}</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="John Doe"
+                      value={authForm.name}
+                      onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
+                      className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">{L.email}</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="example@biomat.com"
+                    value={authForm.email}
+                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">{L.password}</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={authForm.password}
+                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 transition-all pt-3"
+              >
+                {authTab === 'login' ? L.login : L.register}
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer className="mt-auto border-t border-white/10 py-6 text-center text-xs text-slate-500">
