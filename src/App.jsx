@@ -580,10 +580,10 @@ export default function App() {
         <>
 
           {/* Main Dashboard Grid */}
-          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
             
             {/* ── Left Control Sidebar (Contains both DB and Manual Criteria Sliders!) ── */}
-            <aside className="lg:col-span-4 space-y-6 sticky top-24">
+            <aside className="md:col-span-4 space-y-6 sticky top-24">
               <div className="glass-panel p-6 rounded-2xl space-y-6 border border-white/10 shadow-2xl">
                 
                 <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs tracking-wider uppercase">
@@ -735,7 +735,7 @@ export default function App() {
             </aside>
 
             {/* ── Right Results Dashboard ── */}
-            <section className="lg:col-span-8 space-y-8">
+            <section className="md:col-span-8 space-y-8">
               
               {loading ? (
                 <div className="glass-panel p-12 rounded-2xl flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -793,7 +793,7 @@ export default function App() {
                     {/* Bar Chart */}
                     <div className="glass-panel p-6 rounded-2xl space-y-4 shadow-xl border border-white/10">
                       <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-indigo-400" /> {L.bar_title}
+                        <BarChart3 className="w-4 h-4 text-indigo-400" /> {lang === 'tr' ? `${evalResult.materialName} ${L.bar_title}` : `${L.bar_title} ${evalResult.materialName}`}
                       </h4>
                       <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
