@@ -15,8 +15,18 @@ const LANG = {
     title: "BioMat DSS",
     subtitle: "Açıklanabilir Biyomalzeme Uygulama Uygunluk Karar Destek Sistemi",
     desc: "Biyomalzemenizin beş biyomedikal uygulama alanı için uygunluk skorunu hesaplayın. Fuzzy performans değerleri ve açıklanabilir karar mekanizması.",
-    nav_dss: "Karar Destek Sistemi",
+    nav_home: "Anasayfa",
+    nav_dss: "Analiz & Karar Destek",
     nav_auth: "Giriş Yap / Kayıt Ol",
+    home_hero_title: "Açıklanabilir Biyomalzeme Karar Destek Platformu",
+    home_hero_desc: "Biyomalzemenizin 5 temel biyomedikal uygulama alanındaki uygunluk skorlarını MCDM ve Bulanık Mantık algoritmalarıyla analiz edin.",
+    btn_start_analysis: "Analize Başla",
+    feat_db_title: "Veri Tabanı Analizi",
+    feat_db_desc: "Sistemde tanımlı biyomalzemelerin hazır profillerini seçerek anında MCDM uygunluk skorlama ve radar grafiği oluşturun.",
+    feat_manual_title: "Özel Kriter Girişi",
+    feat_manual_desc: "Kendi geliştirdiğiniz malzemenin performans kriterlerini ve fuzzy değerlerini girerek kişiselleştirilmiş değerlendirme yapın.",
+    feat_ai_title: "Açıklanabilir Yapay Zeka",
+    feat_ai_desc: "Karar sürecinin arkasındaki pozitif katkı sağlayan ve sınırlayıcı olan faktörleri şeffaf raporlarla inceleyin.",
     hero_s1: "Akıllı Analiz",
     hero_s2: "Çoklu Kriter",
     hero_s3: "Açıklanabilir AI",
@@ -83,8 +93,18 @@ const LANG = {
     title: "BioMat DSS",
     subtitle: "Explainable Biomaterial Application Suitability Decision Support System",
     desc: "Calculate your biomaterial's suitability score for five biomedical application areas. Fuzzy performance values & transparent decision engine.",
-    nav_dss: "Decision Support System",
+    nav_home: "Home",
+    nav_dss: "Analysis & DSS",
     nav_auth: "Sign In / Register",
+    home_hero_title: "Explainable Biomaterial Decision Support Platform",
+    home_hero_desc: "Analyze your biomaterial's suitability scores across 5 biomedical application areas using MCDM and Fuzzy Logic algorithms.",
+    btn_start_analysis: "Start Analysis",
+    feat_db_title: "Database Analysis",
+    feat_db_desc: "Select predefined biomaterial profiles from the database to generate instant MCDM suitability scoring and radar charts.",
+    feat_manual_title: "Custom Criteria Entry",
+    feat_manual_desc: "Enter performance criteria and fuzzy values for your custom material for personalized evaluation.",
+    feat_ai_title: "Explainable AI Engine",
+    feat_ai_desc: "Examine the positive contributing and limiting factors behind the decision process with transparent reports.",
     hero_s1: "Smart Analysis",
     hero_s2: "Multi-Criteria",
     hero_s3: "Explainable AI",
@@ -233,7 +253,7 @@ export default function App() {
   const [activePage, setActivePage] = useState(() => {
     try {
       const savedSession = localStorage.getItem('biomat_active_session');
-      return savedSession ? 'dss' : 'auth';
+      return savedSession ? 'home' : 'auth';
     } catch (e) {
       return 'auth';
     }
@@ -409,7 +429,7 @@ export default function App() {
         setUser(loggedInUser);
         try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
         setAuthMsg({ type: '', text: '' });
-        setActivePage('dss');
+        setActivePage('home');
       } catch (err) {
         const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
         if (localUser && localUser.password === authForm.password) {
@@ -417,7 +437,7 @@ export default function App() {
           setUser(loggedInUser);
           try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
           setAuthMsg({ type: '', text: '' });
-          setActivePage('dss');
+          setActivePage('home');
         } else {
           setAuthMsg({
             type: 'error',
@@ -458,8 +478,27 @@ export default function App() {
           </div>
         </div>
 
-        {/* Auth User Profile & Lang Switcher */}
+        {/* Navigation Tabs & Auth User Profile & Lang Switcher */}
         <div className="flex items-center gap-3">
+          {user && (
+            <nav className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10 mr-2">
+              <button
+                onClick={() => setActivePage('home')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'home' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>{L.nav_home}</span>
+              </button>
+              <button
+                onClick={() => setActivePage('dss')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'dss' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>{L.nav_dss}</span>
+              </button>
+            </nav>
+          )}
+
           {user && (
             <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
               <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-md">
@@ -599,6 +638,68 @@ export default function App() {
               </div>
             )}
           </div>
+        </div>
+      ) : activePage === 'home' ? (
+        /* ── PAGE: Anasayfa / Home Welcome Landing Page ── */
+        <div className="flex-1 max-w-6xl w-full mx-auto p-6 space-y-12 animate-fadeIn py-10">
+          
+          {/* Hero Section */}
+          <div className="glass-panel p-8 sm:p-12 rounded-3xl border border-white/15 shadow-2xl relative overflow-hidden text-center space-y-6">
+            <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+            
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold">
+              <Sparkles className="w-4 h-4 text-indigo-400" /> {L.welcome}, {user?.name || 'Researcher'}!
+            </div>
+
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+              {L.home_hero_title}
+            </h2>
+
+            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+              {L.home_hero_desc}
+            </p>
+
+            <div className="pt-4 flex flex-wrap justify-center gap-4">
+              <button
+                onClick={() => setActivePage('dss')}
+                className="py-4 px-8 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-sm tracking-wide shadow-xl shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-3"
+              >
+                <Activity className="w-5 h-5" />
+                <span>{L.btn_start_analysis}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Feature Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div className="glass-panel p-6 rounded-2xl space-y-3 border border-white/10 hover:border-indigo-500/40 transition-all shadow-xl">
+              <div className="p-3 rounded-xl bg-indigo-600/20 text-indigo-400 w-fit border border-indigo-500/30">
+                <Database className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white">{L.feat_db_title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{L.feat_db_desc}</p>
+            </div>
+
+            <div className="glass-panel p-6 rounded-2xl space-y-3 border border-white/10 hover:border-purple-500/40 transition-all shadow-xl">
+              <div className="p-3 rounded-xl bg-purple-600/20 text-purple-400 w-fit border border-purple-500/30">
+                <Edit3 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white">{L.feat_manual_title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{L.feat_manual_desc}</p>
+            </div>
+
+            <div className="glass-panel p-6 rounded-2xl space-y-3 border border-white/10 hover:border-cyan-500/40 transition-all shadow-xl">
+              <div className="p-3 rounded-xl bg-cyan-600/20 text-cyan-400 w-fit border border-cyan-500/30">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white">{L.feat_ai_title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{L.feat_ai_desc}</p>
+            </div>
+
+          </div>
+
         </div>
       ) : (
         /* ── PAGE 1: Main DSS Application Page ── */
