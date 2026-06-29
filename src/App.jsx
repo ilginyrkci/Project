@@ -194,8 +194,26 @@ function CircularGauge({ value, label, color }) {
 
 export default function App() {
   const [lang, setLang] = useState('tr');
-  const [activePage, setActivePage] = useState('auth'); // 'dss' or 'auth' - defaults to compulsory auth on load!
   
+  // Auth state with session persistence
+  const [user, setUser] = useState(() => {
+    try {
+      const savedSession = localStorage.getItem('biomat_active_session');
+      return savedSession ? JSON.parse(savedSession) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [activePage, setActivePage] = useState(() => {
+    try {
+      const savedSession = localStorage.getItem('biomat_active_session');
+      return savedSession ? 'dss' : 'auth';
+    } catch (e) {
+      return 'auth';
+    }
+  });
+
   const [materials, setMaterials] = useState([]);
   const [applications, setApplications] = useState([]);
   const [criteriaByApp, setCriteriaByApp] = useState({});
@@ -211,9 +229,7 @@ export default function App() {
   const [evalResult, setEvalResult] = useState(null);
   const [expandedApp, setExpandedApp] = useState(null);
 
-  // Auth state with persistent registered users store
-  const [user, setUser] = useState(null);
-  const [authTab, setAuthTab] = useState('login'); // 'login' or 'register'
+  const [authTab, setAuthTab] = useState('register'); // Defaults to 'register' on initial visit!
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authMsg, setAuthMsg] = useState({ type: '', text: '' });
   const [registeredUsers, setRegisteredUsers] = useState(() => {
@@ -361,16 +377,20 @@ export default function App() {
           return;
         }
 
-        setUser({
+        const loggedInUser = {
           name: data.user ? data.user.name : (localUser ? localUser.name : (emailClean.split('@')[0] || 'Researcher')),
           email: emailClean
-        });
+        };
+        setUser(loggedInUser);
+        try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
         setAuthMsg({ type: '', text: '' });
         setActivePage('dss');
       } catch (err) {
         const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
         if (localUser && localUser.password === authForm.password) {
-          setUser({ name: localUser.name, email: emailClean });
+          const loggedInUser = { name: localUser.name, email: emailClean };
+          setUser(loggedInUser);
+          try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
           setAuthMsg({ type: '', text: '' });
           setActivePage('dss');
         } else {
@@ -381,6 +401,13 @@ export default function App() {
         }
       }
     }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    try { localStorage.removeItem('biomat_active_session'); } catch (e) {}
+    setAuthTab('register');
+    setActivePage('auth');
   };
 
   const bestResult = evalResult?.results?.[0];
@@ -415,7 +442,7 @@ export default function App() {
               </div>
               <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
               <button 
-                onClick={() => { setUser(null); setActivePage('auth'); }}
+                onClick={handleLogout}
                 title={L.logout}
                 className="text-slate-400 hover:text-rose-400 transition-all p-1"
               >
