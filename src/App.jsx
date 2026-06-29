@@ -292,62 +292,94 @@ export default function App() {
     triggerCalculation(mode, mode === 'db' ? selectedMaterial : customMaterialName, manualProfile);
   };
 
-  const handleAuthSubmit = (e) => {
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthMsg({ type: '', text: '' });
 
     const emailClean = authForm.email.trim().toLowerCase();
-    const existingUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
 
     if (authTab === 'register') {
-      if (existingUser) {
-        setAuthMsg({
-          type: 'error',
-          text: lang === 'tr' 
-            ? '⚠️ Bu e-posta adresi zaten kayıtlı! Lütfen bu hesapla giriş yapın.' 
-            : '⚠️ This email address is already registered! Please sign in.'
-        });
-        return;
-      }
-
-      const newUser = {
-        name: authForm.name.trim() || 'Researcher',
-        email: emailClean,
-        password: authForm.password
-      };
-
-      const updated = [...registeredUsers, newUser];
-      setRegisteredUsers(updated);
       try {
-        localStorage.setItem('biomat_registered_users', JSON.stringify(updated));
-      } catch (err) {}
-
-      setAuthTab('login');
-      setAuthMsg({
-        type: 'success',
-        text: lang === 'tr' 
-          ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' 
-          : '✅ Registration successful! Please sign in with your account.'
-      });
-      setAuthForm(prev => ({ ...prev, password: '' }));
-    } else {
-      // Login flow validation
-      if (existingUser && existingUser.password !== authForm.password) {
-        setAuthMsg({
-          type: 'error',
-          text: lang === 'tr' 
-            ? '❌ Hatalı şifre! Lütfen şifrenizi kontrol edip tekrar deneyin.' 
-            : '❌ Incorrect password! Please check your password and try again.'
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: authForm.name,
+            email: emailClean,
+            password: authForm.password
+          })
         });
-        return;
-      }
+        const data = await res.json();
+        if (!data.success && data.message === 'already_exists') {
+          setAuthMsg({
+            type: 'error',
+            text: lang === 'tr' 
+              ? '⚠️ Bu e-posta adresi zaten kayıtlı! Lütfen bu hesapla giriş yapın.' 
+              : '⚠️ This email address is already registered! Please sign in.'
+          });
+          return;
+        }
 
-      setUser({
-        name: existingUser ? existingUser.name : (authForm.email.split('@')[0] || 'Researcher'),
-        email: emailClean
-      });
-      setAuthMsg({ type: '', text: '' });
-      setActivePage('dss');
+        const newUser = { name: authForm.name || 'Researcher', email: emailClean, password: authForm.password };
+        const updated = [...registeredUsers, newUser];
+        setRegisteredUsers(updated);
+        try { localStorage.setItem('biomat_registered_users', JSON.stringify(updated)); } catch (err) {}
+
+        setAuthTab('login');
+        setAuthMsg({
+          type: 'success',
+          text: lang === 'tr' 
+            ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' 
+            : '✅ Registration successful! Please sign in with your account.'
+        });
+        setAuthForm(prev => ({ ...prev, password: '' }));
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailClean,
+            password: authForm.password
+          })
+        });
+        const data = await res.json();
+        
+        const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
+        const isValidLocal = localUser && localUser.password === authForm.password;
+
+        if (!data.success && !isValidLocal) {
+          setAuthMsg({
+            type: 'error',
+            text: lang === 'tr' 
+              ? '❌ Kullanıcı adı veya şifre yanlıştır!' 
+              : '❌ Invalid email or password!'
+          });
+          return;
+        }
+
+        setUser({
+          name: data.user ? data.user.name : (localUser ? localUser.name : (emailClean.split('@')[0] || 'Researcher')),
+          email: emailClean
+        });
+        setAuthMsg({ type: '', text: '' });
+        setActivePage('dss');
+      } catch (err) {
+        const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
+        if (localUser && localUser.password === authForm.password) {
+          setUser({ name: localUser.name, email: emailClean });
+          setAuthMsg({ type: '', text: '' });
+          setActivePage('dss');
+        } else {
+          setAuthMsg({
+            type: 'error',
+            text: lang === 'tr' ? '❌ Kullanıcı adı veya şifre yanlıştır!' : '❌ Invalid email or password!'
+          });
+        }
+      }
     }
   };
 

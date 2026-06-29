@@ -111,3 +111,63 @@ def evaluate(req: EvaluateRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── User Database Storage & Auth Endpoints ───────────────────────────────
+import json
+
+USERS_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "users_db.json")
+
+def load_users():
+    if os.path.exists(USERS_DB_PATH):
+        try:
+            with open(USERS_DB_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+def save_users(users):
+    try:
+        with open(USERS_DB_PATH, "w", encoding="utf-8") as f:
+            json.dump(users, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+class AuthRegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class AuthLoginRequest(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/register")
+def register_user(req: AuthRegisterRequest):
+    users = load_users()
+    email_clean = req.email.strip().lower()
+    for u in users:
+        if u.get("email", "").lower() == email_clean:
+            return {"success": False, "message": "already_exists"}
+    
+    new_user = {
+        "name": req.name.strip() or "Researcher",
+        "email": email_clean,
+        "password": req.password
+    }
+    users.append(new_user)
+    save_users(users)
+    return {"success": True, "user": new_user}
+
+@app.post("/api/login")
+def login_user(req: AuthLoginRequest):
+    users = load_users()
+    email_clean = req.email.strip().lower()
+    for u in users:
+        if u.get("email", "").lower() == email_clean:
+            if u.get("password") == req.password:
+                return {"success": True, "user": {"name": u.get("name"), "email": u.get("email")}}
+            else:
+                return {"success": False, "message": "invalid_credentials"}
+    return {"success": False, "message": "invalid_credentials"}
+
