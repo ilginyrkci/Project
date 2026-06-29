@@ -470,34 +470,6 @@ export default function App() {
       ) : (
         /* ── PAGE 1: Main DSS Application Page ── */
         <>
-          {/* Hero Banner Section */}
-          <section className="pt-8 pb-4 px-6 text-center max-w-4xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> MCDM-Based Explainable AI Engine
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400">
-              {L.title}
-            </h2>
-            <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              {L.desc}
-            </p>
-
-            {/* Feature Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-left">
-              <div className="glass-card p-4 rounded-xl space-y-1">
-                <div className="text-indigo-400 font-bold text-sm flex items-center gap-2"><Zap className="w-4 h-4" /> {L.hero_s1}</div>
-                <div className="text-xs text-slate-400">{L.hero_d1}</div>
-              </div>
-              <div className="glass-card p-4 rounded-xl space-y-1">
-                <div className="text-purple-400 font-bold text-sm flex items-center gap-2"><Layers className="w-4 h-4" /> {L.hero_s2}</div>
-                <div className="text-xs text-slate-400">{L.hero_d2}</div>
-              </div>
-              <div className="glass-card p-4 rounded-xl space-y-1">
-                <div className="text-cyan-400 font-bold text-sm flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> {L.hero_s3}</div>
-                <div className="text-xs text-slate-400">{L.hero_d3}</div>
-              </div>
-            </div>
-          </section>
 
           {/* Main Dashboard Grid */}
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
