@@ -3,7 +3,7 @@ import {
   Dna, Globe, Database, Edit3, Award, CheckCircle2, AlertTriangle, 
   HelpCircle, ChevronDown, ChevronUp, BarChart3, Radar as RadarIcon, 
   Sparkles, ShieldCheck, FileText, Activity, Layers, Zap, ArrowRight, Table,
-  User, Lock, Mail, UserPlus, LogOut, X, Sliders
+  User, Lock, Mail, UserPlus, LogOut, X, Sliders, Check
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
@@ -14,7 +14,7 @@ const LANG = {
   tr: {
     title: "BioMat DSS",
     subtitle: "Açıklanabilir Biyomalzeme Uygulama Uygunluk Karar Destek Sistemi",
-    desc: "Biyomalzemenizin beş biyomedikal uygulama alanı için uygunluk skorunu hesaplayın. Skor; uygulama kriterleri, zorunlu ön uygunluk koşulları, fuzzy performans değerleri ve açıklanabilir kriter katkıları üzerinden üretilir.",
+    desc: "Biyomalzemenizin beş biyomedikal uygulama alanı için uygunluk skorunu hesaplayın. Fuzzy performans değerleri ve açıklanabilir karar mekanizması.",
     hero_s1: "Akıllı Analiz",
     hero_s2: "Çoklu Kriter",
     hero_s3: "Açıklanabilir AI",
@@ -52,8 +52,8 @@ const LANG = {
     email: "E-Posta Adresi",
     password: "Şifre",
     fullname: "Ad Soyad",
-    welcome: "Hoş geldiniz",
-    auth_title: "Hesabınıza Giriş Yapın veya Kaydolun",
+    welcome: "Hoş Geldiniz",
+    auth_subtitle: "Sisteme erişebilmek için lütfen giriş yapın veya ücretsiz kayıt olun.",
     app_names: {
       "Wound Dressing": "Yara Örtüsü",
       "Drug Delivery System": "İlaç Taşıma Sistemi",
@@ -73,7 +73,7 @@ const LANG = {
   en: {
     title: "BioMat DSS",
     subtitle: "Explainable Biomaterial Application Suitability Decision Support System",
-    desc: "Calculate your biomaterial's suitability score for five biomedical application areas. Scores generated via criteria, mandatory gates, fuzzy performance, and explainable contributions.",
+    desc: "Calculate your biomaterial's suitability score for five biomedical application areas. Fuzzy performance values & transparent decision engine.",
     hero_s1: "Smart Analysis",
     hero_s2: "Multi-Criteria",
     hero_s3: "Explainable AI",
@@ -112,7 +112,7 @@ const LANG = {
     password: "Password",
     fullname: "Full Name",
     welcome: "Welcome",
-    auth_title: "Sign In or Create an Account",
+    auth_subtitle: "Please sign in or create a free account to access the decision support system.",
     app_names: {
       "Wound Dressing": "Wound Dressing",
       "Drug Delivery System": "Drug Delivery System",
@@ -203,15 +203,14 @@ export default function App() {
   const [evalResult, setEvalResult] = useState(null);
   const [expandedApp, setExpandedApp] = useState(null);
 
-  // Auth States
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  // Auth mandatory wall state
+  const [user, setUser] = useState(null); // null means unauthenticated!
   const [authTab, setAuthTab] = useState('login'); // 'login' or 'register'
-  const [user, setUser] = useState(null);
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
 
   const L = LANG[lang];
 
-  // Fetch initial metadata and auto-calculate default
+  // Fetch initial metadata
   useEffect(() => {
     fetch('/api/materials')
       .then(res => res.json())
@@ -279,15 +278,134 @@ export default function App() {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     setUser({
-      name: authTab === 'register' ? authForm.name : (authForm.email.split('@')[0] || 'User'),
+      name: authTab === 'register' ? authForm.name : (authForm.email.split('@')[0] || 'Researcher'),
       email: authForm.email
     });
-    setShowAuthModal(false);
-    setAuthForm({ name: '', email: '', password: '' });
   };
 
   const bestResult = evalResult?.results?.[0];
 
+  /* ── Mandatory Auth Screen ── */
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0a0e1a] text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        
+        {/* Background Blobs */}
+        <div className="fixed top-1/4 left-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="fixed bottom-1/4 right-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+        {/* Top Language Switcher on Auth Screen */}
+        <div className="absolute top-6 right-6 flex items-center gap-1 p-1 bg-slate-900/80 rounded-xl border border-white/10">
+          <button
+            onClick={() => setLang('tr')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'tr' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+          >
+            🇹🇷 TR
+          </button>
+          <button
+            onClick={() => setLang('en')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${lang === 'en' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+          >
+            🇬🇧 EN
+          </button>
+        </div>
+
+        <div className="w-full max-w-md space-y-6 animate-fadeIn z-10">
+          
+          {/* Logo Branding */}
+          <div className="text-center space-y-3">
+            <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl shadow-indigo-500/30 mb-1">
+              <Dna className="w-10 h-10 animate-pulse" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-white">BioMat DSS</h1>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">{L.auth_subtitle}</p>
+          </div>
+
+          {/* Auth Glass Card */}
+          <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/15 shadow-2xl space-y-6">
+            
+            {/* Login / Register Tab switcher */}
+            <div className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10">
+              <button
+                onClick={() => setAuthTab('login')}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${authTab === 'login' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                {L.login}
+              </button>
+              <button
+                onClick={() => setAuthTab('register')}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${authTab === 'register' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+              >
+                {L.register}
+              </button>
+            </div>
+
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              {authTab === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300">{L.fullname}</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Dr. Alex Vance"
+                      value={authForm.name}
+                      onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
+                      className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">{L.email}</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="researcher@biomat.com"
+                    value={authForm.email}
+                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                    className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">{L.password}</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={authForm.password}
+                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                    className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-xs tracking-wide shadow-xl shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5"
+              >
+                {authTab === 'login' ? L.login : L.register}
+              </button>
+            </form>
+
+          </div>
+
+          <p className="text-center text-[11px] text-slate-500">{L.footer}</p>
+
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Main Authenticated Application View ── */
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
       
@@ -310,37 +428,20 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* User Auth Info / Button */}
-          {user ? (
-            <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
-              <button 
-                onClick={() => setUser(null)}
-                title={L.logout}
-                className="text-slate-400 hover:text-rose-400 transition-all p-1"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+          {/* Authenticated User Badge */}
+          <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-md">
+              {user.name.charAt(0).toUpperCase()}
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
-                className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 transition-all border border-white/10"
-              >
-                {L.login}
-              </button>
-              <button
-                onClick={() => { setAuthTab('register'); setShowAuthModal(true); }}
-                className="px-3.5 py-1.5 text-xs font-bold rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md shadow-indigo-500/20 transition-all"
-              >
-                {L.register}
-              </button>
-            </div>
-          )}
+            <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
+            <button 
+              onClick={() => setUser(null)}
+              title={L.logout}
+              className="text-slate-400 hover:text-rose-400 transition-all p-1"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
 
           {/* Language switcher */}
           <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
@@ -392,7 +493,7 @@ export default function App() {
       {/* ── Main Dashboard Grid ── */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* ── Left Control Sidebar ── */}
+        {/* ── Left Control Sidebar (Hosts BOTH DB and Manual Criteria Sliders!) ── */}
         <aside className="lg:col-span-4 space-y-6 sticky top-24">
           <div className="glass-panel p-6 rounded-2xl space-y-6 border border-white/10 shadow-2xl">
             
@@ -420,7 +521,7 @@ export default function App() {
 
             <hr className="border-white/10" />
 
-            {/* Mode Content in Sidebar */}
+            {/* Mode Content strictly inside Sidebar */}
             {mode === 'db' ? (
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.select_mat}</label>
@@ -442,7 +543,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              /* Manual Input Sidebar Info */
+              /* Manual Input Form inside Sidebar! */
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.mat_name}</label>
@@ -453,9 +554,74 @@ export default function App() {
                     className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 transition-all"
                   />
                 </div>
-                <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium space-y-1">
-                  <div className="font-bold flex items-center gap-1.5 text-indigo-400"><Sliders className="w-3.5 h-3.5" /> Kriter Ayarları Yanda</div>
-                  <p className="text-slate-400 text-[11px] leading-relaxed">Uygulama kriterlerini ve skor kaydırıcılarını sağ taraftaki geniş alandan rahatça düzenleyebilirsiniz.</p>
+
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">{L.criteria_scores}</div>
+                  <p className="text-[11px] text-slate-400">{L.criteria_tip}</p>
+                </div>
+
+                {/* Tabs for Applications inside Sidebar */}
+                <div className="space-y-3 pt-1">
+                  <div className="flex overflow-x-auto gap-1 pb-2 scrollbar-none">
+                    {applications.map(app => (
+                      <button
+                        key={app}
+                        onClick={() => setActiveTab(app)}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${activeTab === app ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+                      >
+                        {L.app_names[app] || app}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Criteria Sliders list inside Sidebar */}
+                  <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                    {(criteriaByApp[activeTab] || []).map(criterion => {
+                      const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
+                      const val = manualProfile[criterion] ?? 0.70;
+
+                      return (
+                        <div key={criterion} className="p-3 rounded-xl bg-white/3 border border-white/5 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-semibold text-slate-300">{criterion}</label>
+                            <input
+                              type="checkbox"
+                              checked={hasData}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
+                                setManualProfile(prev => {
+                                  const copy = { ...prev };
+                                  if (checked) copy[criterion] = val;
+                                  else delete copy[criterion];
+                                  return copy;
+                                });
+                              }}
+                              className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
+                            />
+                          </div>
+
+                          {hasData && (
+                            <div className="space-y-1 pt-1">
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={val}
+                                onChange={(e) => {
+                                  const v = parseFloat(e.target.value);
+                                  setManualProfile(prev => ({ ...prev, [criterion]: v }));
+                                }}
+                                className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                              />
+                              <div className="text-right font-mono text-xs text-indigo-400 font-bold">{val.toFixed(2)}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -479,98 +645,9 @@ export default function App() {
           </div>
         </aside>
 
-        {/* ── Right Content Area (Manual Criteria Editor OR Results Dashboard) ── */}
+        {/* ── Right Results Dashboard (Strictly displays Results & Analysis!) ── */}
         <section className="lg:col-span-8 space-y-8">
           
-          {/* If Mode is Manual and user hasn't clicked calculate yet or wants to configure criteria in the spacious right panel */}
-          {mode === 'manual' && (
-            <div className="glass-panel p-6 sm:p-8 rounded-2xl space-y-6 border border-white/10 shadow-2xl animate-fadeIn">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                    <Sliders className="w-6 h-6 text-indigo-400" /> {L.criteria_scores}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">{L.criteria_tip}</p>
-                </div>
-                <button
-                  onClick={handleCalculate}
-                  disabled={loading}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2 self-start sm:self-auto"
-                >
-                  <Sparkles className="w-4 h-4" /> {L.btn_calc}
-                </button>
-              </div>
-
-              {/* Application Tabs */}
-              <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none border-b border-white/5">
-                {applications.map(app => (
-                  <button
-                    key={app}
-                    onClick={() => setActiveTab(app)}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${activeTab === app ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
-                  >
-                    {L.app_names[app] || app}
-                  </button>
-                ))}
-              </div>
-
-              {/* Criteria Sliders Grid in 2 Columns */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(criteriaByApp[activeTab] || []).map(criterion => {
-                  const hasData = manualCheckboxes[`${activeTab}_${criterion}`] || false;
-                  const val = manualProfile[criterion] ?? 0.70;
-
-                  return (
-                    <div key={criterion} className={`p-4 rounded-2xl border transition-all ${hasData ? 'bg-indigo-950/20 border-indigo-500/40 shadow-md' : 'bg-white/2 border-white/5 opacity-80'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-200 cursor-pointer flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={hasData}
-                            onChange={(e) => {
-                              const checked = e.target.checked;
-                              setManualCheckboxes(prev => ({ ...prev, [`${activeTab}_${criterion}`]: checked }));
-                              setManualProfile(prev => {
-                                const copy = { ...prev };
-                                if (checked) copy[criterion] = val;
-                                else delete copy[criterion];
-                                return copy;
-                              });
-                            }}
-                            className="accent-indigo-500 w-4 h-4 rounded cursor-pointer"
-                          />
-                          <span>{criterion} verisi var</span>
-                        </label>
-                      </div>
-
-                      {hasData && (
-                        <div className="space-y-1.5 pt-2">
-                          <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
-                            <span>{criterion}</span>
-                            <span className="font-mono text-indigo-400 font-bold">{val.toFixed(2)}</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={val}
-                            onChange={(e) => {
-                              const v = parseFloat(e.target.value);
-                              setManualProfile(prev => ({ ...prev, [criterion]: v }));
-                            }}
-                            className="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Results Dashboard */}
           {loading ? (
             <div className="glass-panel p-12 rounded-2xl flex flex-col items-center justify-center min-h-[400px] space-y-4">
               <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -820,102 +897,6 @@ export default function App() {
         </section>
 
       </main>
-
-      {/* ── Auth Modal (Sign In / Sign Up) ── */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-2xl glass-panel border border-white/15 shadow-2xl space-y-6">
-            
-            <button 
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-all p-1.5 rounded-lg hover:bg-white/10"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-3 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 mb-1">
-                <User className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-black text-white">{L.auth_title}</h3>
-            </div>
-
-            {/* Modal Tabs */}
-            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-white/10">
-              <button
-                onClick={() => setAuthTab('login')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authTab === 'login' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-              >
-                {L.login}
-              </button>
-              <button
-                onClick={() => setAuthTab('register')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${authTab === 'register' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-              >
-                {L.register}
-              </button>
-            </div>
-
-            {/* Auth Form */}
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              {authTab === 'register' && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">{L.fullname}</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="John Doe"
-                      value={authForm.name}
-                      onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">{L.email}</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="example@biomat.com"
-                    value={authForm.email}
-                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">{L.password}</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={authForm.password}
-                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 transition-all pt-3"
-              >
-                {authTab === 'login' ? L.login : L.register}
-              </button>
-            </form>
-
-          </div>
-        </div>
-      )}
 
       {/* ── Footer ── */}
       <footer className="mt-auto border-t border-white/10 py-6 text-center text-xs text-slate-500">
