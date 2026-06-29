@@ -13,6 +13,7 @@ from biomaterial_engine import (
     evaluate_material_for_all_applications,
     build_material_profile_from_decision_matrix,
     generate_turkish_explanation,
+    generate_english_explanation,
     APPLICATIONS
 )
 
@@ -100,9 +101,11 @@ def evaluate(req: EvaluateRequest):
         results_list = results_df.to_dict(orient="records")
         cleaned_details = {}
         for app_name, detail in detailed_outputs.items():
-            explanation = generate_turkish_explanation(app_name, detail)
+            explanation_tr = generate_turkish_explanation(app_name, detail)
+            explanation_en = generate_english_explanation(app_name, detail)
             cleaned_detail = clean_obj(detail)
-            cleaned_detail["turkish_explanation"] = explanation
+            cleaned_detail["turkish_explanation"] = explanation_tr
+            cleaned_detail["english_explanation"] = explanation_en
             cleaned_details[app_name] = cleaned_detail
 
         return {

@@ -404,8 +404,32 @@ def generate_turkish_explanation(application, result):
         text += "Eksik veya girilmemiş kritik veriler: "
         text += "; ".join(missing) + ". "
 
+    return text
+
+
+def generate_english_explanation(application, result):
+    """
+    Produces a concise English explanation for the dashboard.
+    """
+    score = result["score"]
+    label = result["label"]
+    data_coverage = result["data_coverage"]
+
+    positives = [f"{row['Criterion']} ({row['Suitability']:.2f})" for _, row in result["positive_factors"].iterrows()]
+    limiters = [f"{row['Criterion']} ({row['Suitability']:.2f})" for _, row in result["limiting_factors"].iterrows()]
+    missing = [item["criterion"] for item in result["missing_criteria"]]
+
+    text = f"The suitability score for {application} is calculated as {score:.1f}%. "
+    text += f"This result corresponds to the '{label}' level. "
+    text += f"The data coverage rate is {data_coverage:.1f}%. "
+
+    if positives:
+        text += "Key positive contributing factors: " + "; ".join(positives) + ". "
+    if limiters:
+        text += "Limiting factors: " + "; ".join(limiters) + ". "
+    if missing:
+        text += "Missing critical criteria: " + "; ".join(missing) + ". "
     if result["mandatory_failures"]:
-        text += "Zorunlu ön uygunluk kriterlerinde sorun vardır: "
-        text += "; ".join(result["mandatory_failures"]) + ". "
+        text += "Issues in mandatory pre-suitability criteria: " + "; ".join(result["mandatory_failures"]) + ". "
 
     return text

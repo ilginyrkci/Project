@@ -903,7 +903,7 @@ export default function App() {
                                 </span>
                               </td>
                               <td className="p-3 font-mono text-cyan-400 font-bold">{row.DataCoverage}%</td>
-                              <td className="p-3">{row.MandatoryGate === 1.0 ? '✅ Pass' : '❌ Fail'}</td>
+                              <td className="p-3 font-mono font-bold">{row.MandatoryGate === 1.0 ? (lang === 'tr' ? '✅ Geçti' : '✅ Pass') : (lang === 'tr' ? '❌ Elendi' : '❌ Fail')}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -948,7 +948,7 @@ export default function App() {
                               <div className="p-5 border-t border-white/10 bg-slate-900/60 space-y-4 text-xs text-slate-300">
                                 {/* Explanation Paragraph */}
                                 <p className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-indigo-200 leading-relaxed font-medium">
-                                  {detail.turkish_explanation}
+                                  {lang === 'tr' ? detail.turkish_explanation : (detail.english_explanation || detail.turkish_explanation)}
                                 </p>
 
                                 {/* Factors Grid */}
