@@ -25,6 +25,7 @@ const LANG = {
     hero_d3: "Şeffaf karar mekanizması",
     mode: "Giriş Modu",
     mode_db: "Veri tabanındaki malzemeyi seç",
+    mode_db_desc: "Veri tabanından malzeme seçerek anında MCDM uygunluk analizini görüntüleyin.",
     mode_manual: "Yeni malzeme / manuel kriter girişi",
     select_mat: "Malzeme Seç",
     mat_loaded: "profili veri tabanından çekildi.",
@@ -48,6 +49,11 @@ const LANG = {
     missing: "Eksik Veriler",
     no_missing: "Eksik veri bulunmadı.",
     all_detail: "Tüm Kriter Ayrıntısı",
+    col_app: "Uygulama Alanı",
+    col_score: "Uygunluk Skoru",
+    col_interp: "Yorum",
+    col_coverage: "Veri Kapsama",
+    col_gate: "Zorunlu Kapı",
     login: "Giriş Yap",
     register: "Kayıt Ol",
     logout: "Çıkış Yap",
@@ -87,6 +93,7 @@ const LANG = {
     hero_d3: "Transparent decision mechanism",
     mode: "Input Mode",
     mode_db: "Select material from database",
+    mode_db_desc: "Select a material from the database to view instant MCDM suitability analysis.",
     mode_manual: "New material / manual criterion entry",
     select_mat: "Select Material",
     mat_loaded: "profile loaded from database.",
@@ -110,6 +117,11 @@ const LANG = {
     missing: "Missing Data",
     no_missing: "No missing data found.",
     all_detail: "Full Criterion Details",
+    col_app: "Application Area",
+    col_score: "Suitability Score",
+    col_interp: "Interpretation",
+    col_coverage: "Data Coverage",
+    col_gate: "Mandatory Gate",
     login: "Sign In",
     register: "Sign Up",
     logout: "Sign Out",
@@ -617,7 +629,7 @@ export default function App() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h3 className="text-lg font-black text-white">{L.mode_db}</h3>
-                      <p className="text-xs text-slate-400">Veri tabanından malzeme seçerek anında MCDM uygunluk analizini görüntüleyin.</p>
+                      <p className="text-xs text-slate-400">{L.mode_db_desc}</p>
                     </div>
                     <div className="w-full sm:w-72">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{L.select_mat}</label>
@@ -873,11 +885,11 @@ export default function App() {
                       <table className="w-full text-left text-xs text-slate-300">
                         <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider border-b border-white/10">
                           <tr>
-                            <th className="p-3">Uygulama Alanı</th>
-                            <th className="p-3">Uygunluk Skoru</th>
-                            <th className="p-3">Yorum</th>
-                            <th className="p-3">Veri Kapsama</th>
-                            <th className="p-3">Zorunlu Kapı</th>
+                            <th className="p-3">{L.col_app}</th>
+                            <th className="p-3">{L.col_score}</th>
+                            <th className="p-3">{L.col_interp}</th>
+                            <th className="p-3">{L.col_coverage}</th>
+                            <th className="p-3">{L.col_gate}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-medium">
