@@ -215,6 +215,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authTab, setAuthTab] = useState('login'); // 'login' or 'register'
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authSuccessMsg, setAuthSuccessMsg] = useState('');
 
   const L = LANG[lang];
 
@@ -285,11 +286,19 @@ export default function App() {
 
   const handleAuthSubmit = (e) => {
     e.preventDefault();
-    setUser({
-      name: authTab === 'register' ? authForm.name : (authForm.email.split('@')[0] || 'Researcher'),
-      email: authForm.email
-    });
-    setActivePage('dss');
+    if (authTab === 'register') {
+      // Switch to login tab and show success message
+      setAuthTab('login');
+      setAuthSuccessMsg(lang === 'tr' ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' : '✅ Registration successful! Please sign in with your account.');
+      setAuthForm(prev => ({ ...prev, password: '' }));
+    } else {
+      setUser({
+        name: authForm.name || (authForm.email.split('@')[0] || 'Researcher'),
+        email: authForm.email
+      });
+      setAuthSuccessMsg('');
+      setActivePage('dss');
+    }
   };
 
   const bestResult = evalResult?.results?.[0];
@@ -392,6 +401,12 @@ export default function App() {
                     {L.register}
                   </button>
                 </div>
+
+                {authSuccessMsg && (
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center animate-fadeIn">
+                    {authSuccessMsg}
+                  </div>
+                )}
 
                 <form onSubmit={handleAuthSubmit} className="space-y-4">
                   {authTab === 'register' && (
