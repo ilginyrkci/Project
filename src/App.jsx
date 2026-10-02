@@ -240,24 +240,7 @@ export default function App() {
     } catch (e) {}
   };
   
-  // Auth state with session persistence
-  const [user, setUser] = useState(() => {
-    try {
-      const savedSession = localStorage.getItem('biomat_active_session');
-      return savedSession ? JSON.parse(savedSession) : null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  const [activePage, setActivePage] = useState(() => {
-    try {
-      const savedSession = localStorage.getItem('biomat_active_session');
-      return savedSession ? 'home' : 'auth';
-    } catch (e) {
-      return 'auth';
-    }
-  });
+  const [activePage, setActivePage] = useState('home');
 
   const [materials, setMaterials] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -273,18 +256,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [evalResult, setEvalResult] = useState(null);
   const [expandedApp, setExpandedApp] = useState(null);
-
-  const [authTab, setAuthTab] = useState('register'); // Defaults to 'register' on initial visit!
-  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
-  const [authMsg, setAuthMsg] = useState({ type: '', text: '' });
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('biomat_registered_users');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
 
   const L = LANG[lang];
 
@@ -353,108 +324,6 @@ export default function App() {
     triggerCalculation(mode, mode === 'db' ? selectedMaterial : customMaterialName, manualProfile);
   };
 
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault();
-    setAuthMsg({ type: '', text: '' });
-
-    const emailClean = authForm.email.trim().toLowerCase();
-
-    if (authTab === 'register') {
-      try {
-        const res = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: authForm.name,
-            email: emailClean,
-            password: authForm.password
-          })
-        });
-        const data = await res.json();
-        if (!data.success && data.message === 'already_exists') {
-          setAuthMsg({
-            type: 'error',
-            text: lang === 'tr' 
-              ? '⚠️ Bu e-posta adresi zaten kayıtlı! Lütfen bu hesapla giriş yapın.' 
-              : '⚠️ This email address is already registered! Please sign in.'
-          });
-          return;
-        }
-
-        const newUser = { name: authForm.name || 'Researcher', email: emailClean, password: authForm.password };
-        const updated = [...registeredUsers, newUser];
-        setRegisteredUsers(updated);
-        try { localStorage.setItem('biomat_registered_users', JSON.stringify(updated)); } catch (err) {}
-
-        setAuthTab('login');
-        setAuthMsg({
-          type: 'success',
-          text: lang === 'tr' 
-            ? '✅ Kayıt başarılı! Lütfen oluşturduğunuz hesapla giriş yapın.' 
-            : '✅ Registration successful! Please sign in with your account.'
-        });
-        setAuthForm(prev => ({ ...prev, password: '' }));
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: emailClean,
-            password: authForm.password
-          })
-        });
-        const data = await res.json();
-        
-        const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
-        const isValidLocal = localUser && localUser.password === authForm.password;
-
-        if (!data.success && !isValidLocal) {
-          setAuthMsg({
-            type: 'error',
-            text: lang === 'tr' 
-              ? '❌ Kullanıcı adı veya şifre yanlıştır!' 
-              : '❌ Invalid email or password!'
-          });
-          return;
-        }
-
-        const loggedInUser = {
-          name: data.user ? data.user.name : (localUser ? localUser.name : (emailClean.split('@')[0] || 'Researcher')),
-          email: emailClean
-        };
-        setUser(loggedInUser);
-        try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
-        setAuthMsg({ type: '', text: '' });
-        setActivePage('home');
-      } catch (err) {
-        const localUser = registeredUsers.find(u => u.email.toLowerCase() === emailClean);
-        if (localUser && localUser.password === authForm.password) {
-          const loggedInUser = { name: localUser.name, email: emailClean };
-          setUser(loggedInUser);
-          try { localStorage.setItem('biomat_active_session', JSON.stringify(loggedInUser)); } catch (e) {}
-          setAuthMsg({ type: '', text: '' });
-          setActivePage('home');
-        } else {
-          setAuthMsg({
-            type: 'error',
-            text: lang === 'tr' ? '❌ Kullanıcı adı veya şifre yanlıştır!' : '❌ Invalid email or password!'
-          });
-        }
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    try { localStorage.removeItem('biomat_active_session'); } catch (e) {}
-    setAuthTab('register');
-    setActivePage('auth');
-  };
-
   const bestResult = evalResult?.results?.[0];
 
   return (
@@ -478,42 +347,24 @@ export default function App() {
           </div>
         </div>
 
-        {/* Navigation Tabs & Auth User Profile & Lang Switcher */}
+        {/* Navigation Tabs & Lang Switcher */}
         <div className="flex items-center gap-3">
-          {user && (
-            <nav className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10 mr-2">
-              <button
-                onClick={() => setActivePage('home')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'home' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>{L.nav_home}</span>
-              </button>
-              <button
-                onClick={() => setActivePage('dss')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'dss' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-              >
-                <Activity className="w-3.5 h-3.5" />
-                <span>{L.nav_dss}</span>
-              </button>
-            </nav>
-          )}
-
-          {user && (
-            <div className="flex items-center gap-3 bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-md">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs font-bold text-slate-200 hidden sm:inline">{user.name}</span>
-              <button 
-                onClick={handleLogout}
-                title={L.logout}
-                className="text-slate-400 hover:text-rose-400 transition-all p-1"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          <nav className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10 mr-2">
+            <button
+              onClick={() => setActivePage('home')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'home' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>{L.nav_home}</span>
+            </button>
+            <button
+              onClick={() => setActivePage('dss')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${activePage === 'dss' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>{L.nav_dss}</span>
+            </button>
+          </nav>
 
           {/* Language switcher */}
           <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-xl border border-white/10">
@@ -533,113 +384,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── PAGE 2: Dedicated Auth Page ── */}
-      {!user || activePage === 'auth' ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 my-8 animate-fadeIn">
-          <div className="w-full max-w-md space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-4 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 mb-2">
-                <User className="w-8 h-8" />
-              </div>
-              <h2 className="text-2xl font-black text-white">{user ? `${L.welcome}, ${user.name}!` : L.auth_title}</h2>
-              <p className="text-xs text-slate-400 leading-relaxed">{L.auth_subtitle}</p>
-            </div>
-
-            {user ? (
-              <div className="glass-panel p-6 rounded-2xl border border-white/10 text-center space-y-4">
-                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm">
-                  ✓ {user.email} ile oturum açıldı.
-                </div>
-                <button
-                  onClick={() => setUser(null)}
-                  className="w-full py-3 px-4 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 text-rose-300 font-bold text-xs transition-all flex items-center justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" /> {L.logout}
-                </button>
-              </div>
-            ) : (
-              <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/15 shadow-2xl space-y-6">
-                <div className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10">
-                  <button
-                    onClick={() => setAuthTab('login')}
-                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${authTab === 'login' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                  >
-                    {L.login}
-                  </button>
-                  <button
-                    onClick={() => setAuthTab('register')}
-                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${authTab === 'register' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                  >
-                    {L.register}
-                  </button>
-                </div>
-
-                {authMsg.text && (
-                  <div className={`p-3.5 rounded-xl text-xs font-bold text-center animate-fadeIn border ${authMsg.type === 'error' ? 'bg-rose-500/10 border-rose-500/30 text-rose-300' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
-                    {authMsg.text}
-                  </div>
-                )}
-
-                <form onSubmit={handleAuthSubmit} className="space-y-4">
-                  {authTab === 'register' && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-300">{L.fullname}</label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                        <input
-                          type="text"
-                          required
-                          placeholder="Dr. Alex Vance"
-                          value={authForm.name}
-                          onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                          className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300">{L.email}</label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="researcher@biomat.com"
-                        value={authForm.email}
-                        onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                        className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300">{L.password}</label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                      <input
-                        type="password"
-                        required
-                        placeholder="••••••••"
-                        value={authForm.password}
-                        onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                        className="w-full bg-slate-900/90 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-xs tracking-wide shadow-xl shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5"
-                  >
-                    {authTab === 'login' ? L.login : L.register}
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : activePage === 'home' ? (
+      {/* ── Main Page Content ── */}
+      {activePage === 'home' ? (
         /* ── PAGE: Anasayfa / Home Welcome Landing Page ── */
         <div className="flex-1 max-w-6xl w-full mx-auto p-6 space-y-12 animate-fadeIn py-10">
           
@@ -648,7 +394,7 @@ export default function App() {
             <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
             
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold">
-              <Sparkles className="w-4 h-4 text-indigo-400" /> {L.welcome}, {user?.name || 'Researcher'}!
+              <Sparkles className="w-4 h-4 text-indigo-400" /> BioMat DSS Platform
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
